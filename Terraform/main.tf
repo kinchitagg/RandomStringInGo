@@ -2,8 +2,14 @@ provider "aws" {
   region = "us-east-1"
 }
 
+provider "aws" {
+    alias = "secondary"
+    region = "us-west-1"
+}
+
 data "aws_ami" "dynamicAmi" {
   most_recent = true
+  provider = aws.secondary
 
   filter {
     name   = "state"
@@ -23,16 +29,11 @@ data "aws_ami" "dynamicAmi" {
 
 resource "aws_key_pair" "accessKey" {
   key_name = "access-key"
-  public_key = file("~/.ssh/accesskey.pub")
+  public_key = file("~/.ssh/access_key.pub")
+  provider = aws.secondary
 }
 
-#data "terraform_remote_state" "iam_roles" {
-#  backend = "local"
-#
-#  config = {
-#    path = "terraform.tfstate"
-#  }
-#}
+
 
 resource "aws_instance" "server" {
   ami           = "${data.aws_ami.dynamicAmi.id}"
@@ -41,6 +42,7 @@ resource "aws_instance" "server" {
   key_name = aws_key_pair.accessKey.key_name
   iam_instance_profile = "ECRAccessInstanceProfile"
   user_data = file("userdata.sh") 
+  provider = aws.secondary
   tags = {
     name = "randomString"
   }
@@ -50,8 +52,9 @@ resource "aws_instance" "server" {
 }
 
 resource "aws_security_group" basic {
-    name = "sg"
+    name = "sgg"
     description = "Allow ICMP only"
+    provider = aws.secondary
 
     ingress {
         from_port = -1
