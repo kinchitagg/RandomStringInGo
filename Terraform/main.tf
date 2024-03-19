@@ -12,7 +12,7 @@ data "aws_ami" "dynamicAmi" {
 
   filter {
     name   = "name"
-    values = ["*"]  
+    values = ["*ubuntu*"]  
     }
 
   filter {
@@ -23,16 +23,16 @@ data "aws_ami" "dynamicAmi" {
 
 resource "aws_key_pair" "accessKey" {
   key_name = "access-key"
-  public_key = file("/Users/kinchitaggarwal/.ssh/access_key.pub")
+  public_key = file("~/.ssh/accesskey.pub")
 }
 
-data "terraform_remote_state" "iam_roles" {
-  backend = "local"
-
-  config = {
-    path = "terraform.tfstate"
-  }
-}
+#data "terraform_remote_state" "iam_roles" {
+#  backend = "local"
+#
+#  config = {
+#    path = "terraform.tfstate"
+#  }
+#}
 
 resource "aws_instance" "server" {
   ami           = "${data.aws_ami.dynamicAmi.id}"
@@ -40,6 +40,7 @@ resource "aws_instance" "server" {
   security_groups = [aws_security_group.basic.name]
   key_name = aws_key_pair.accessKey.key_name
   iam_instance_profile = "ECRAccessInstanceProfile"
+  user_data = file("userdata.sh") 
   tags = {
     name = "randomString"
   }
@@ -58,11 +59,19 @@ resource "aws_security_group" basic {
         protocol = "icmp"
         cidr_blocks = ["0.0.0.0/0"]
     }
+
     ingress {
         from_port = 22
         to_port = 22
         protocol = "tcp"
-        cidr_blocks = ["49.36.184.143/32"]
+        cidr_blocks = ["103.189.173.222/32"]
+    }
+
+    ingress {
+        from_port = 0
+        to_port = 8081
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
     }
 
     egress {

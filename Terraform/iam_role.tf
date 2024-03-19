@@ -1,7 +1,7 @@
 #iam_role.tf 
 
 data "aws_ecr_repository" "repo" {
-  name = "randomstring" 
+  name = "randomstring"
 }
 
 resource "aws_iam_policy" "ecr_access_policy" {
@@ -12,8 +12,9 @@ resource "aws_iam_policy" "ecr_access_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
+        Effect   = "Allow",        
         Action   = [
+          "ecr:GetAuthorizationToken",
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage",
           "ecr:BatchCheckLayerAvailability"
